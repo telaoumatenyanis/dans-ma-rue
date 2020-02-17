@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "dependencies": {
     "@elastic/elasticsearch": "^7.5.0",
+    "bluebird": "3.7.2",
     "config": "^3.2.5",
     "csv-parser": "^2.3.2",
     "express": "^4.17.1",
+    "lodash": "4.17.15",
     "moment": "^2.24.0"
   },
   "scripts": {
-    "import": "node import.js",
+    "import": "node --max_old_space_size=5096 import.js",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
