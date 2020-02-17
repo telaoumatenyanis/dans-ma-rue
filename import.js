@@ -65,7 +65,8 @@ async function run() {
       try {
         /**
          * It is needed to chunk the data in order to not exceed the elasticsearch query limit.
-         * In order to limit load on ES, maximum concurrent running bulk are 10
+         * In order to limit load on ES, maximum concurrent running bulk are 10.
+         * Another way could be to useInterval in order to execute promises on a regular basis.
          */
         console.log("Inserting " + anomalies.length + " anomalies");
         await bluebird.map(
