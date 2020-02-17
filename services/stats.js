@@ -1,5 +1,5 @@
 const config = require("config");
-const { flatMap } = require("lodash/fp");
+const { flatMap, sortBy } = require("lodash/fp");
 const indexName = config.get("elasticsearch.index_name");
 
 exports.statsByArrondissement = async (client, callback) => {
@@ -35,12 +35,16 @@ exports.statsByType = async (client, callback) => {
       aggs: {
         type: {
           terms: {
-            field: "type.keyword"
+            field: "type.keyword",
+            order: { _count: "desc" },
+            size: 5
           },
           aggs: {
             sous_type: {
               terms: {
-                field: "sous_type.keyword"
+                field: "sous_type.keyword",
+                order: { _count: "desc" },
+                size: 5
               }
             }
           }
@@ -61,37 +65,50 @@ exports.statsByType = async (client, callback) => {
 };
 
 exports.statsByMonth = async (client, callback) => {
+  // This solution would be using a date histogram, which is a bit clumsy, but at least does not require a new field in the documents
+  //   const res = await client.search({
+  //     size: 0,
+  //     index: indexName,
+  //     body: {
+  //       aggs: {
+  //         statsByMonth: {
+  //           date_histogram: {
+  //             field: "@timestamp",
+  //             calendar_interval: "1M",
+  //             format: "MM/yy",
+  //             order: { _count: "desc" }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   });
+
   const res = await client.search({
     size: 0,
     index: indexName,
     body: {
       aggs: {
-        annee_declaration: {
+        date_declaration: {
           terms: {
-            field: "annee_declaration.keyword"
-          },
-          aggs: {
-            mois_declaration: {
-              terms: {
-                field: "mois_declaration.keyword"
-              }
-            }
+            field: "date_declaration.keyword",
+            order: { _count: "desc" },
+            size: 10
           }
         }
       }
     }
   });
-  const formattedResult = flatMap(bucket => {
-    return bucket.mois_declaration.buckets.map(mois_bucket => ({
-      month: `${mois_bucket.key}/${bucket.key}`,
-      count: mois_bucket.doc_count
-    }));
-  }, res.body.aggregations.annee_declaration.buckets);
+
+  const formattedResult = res.body.aggregations.date_declaration.buckets.map(
+    bucket => ({
+      month: bucket.key,
+      count: bucket.doc_count
+    })
+  );
 
   callback(formattedResult);
 };
 
 exports.statsPropreteByArrondissement = async (client, callback) => {
-  // TODO Trouver le top 3 des arrondissements avec le plus d'anomalies concernant la propreté
   callback([]);
 };
