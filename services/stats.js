@@ -110,5 +110,37 @@ exports.statsByMonth = async (client, callback) => {
 };
 
 exports.statsPropreteByArrondissement = async (client, callback) => {
-  callback([]);
+  const res = await client.search({
+    size: 0,
+    index: indexName,
+    body: {
+      query: {
+        bool: {
+          must: {
+            match: {
+              type: "Propreté"
+            }
+          }
+        }
+      },
+      aggs: {
+        arrondissement: {
+          terms: {
+            field: "arrondissement.keyword",
+            size: 3,
+            order: { _count: "desc" }
+          }
+        }
+      }
+    }
+  });
+
+  const formattedResult = res.body.aggregations.arrondissement.buckets.map(
+    bucket => ({
+      arrondissement: bucket.key,
+      count: bucket.doc_count
+    })
+  );
+
+  callback(formattedResult);
 };
