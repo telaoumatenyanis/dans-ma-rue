@@ -50,6 +50,7 @@ async function run() {
         object_id: data.OBJECTID,
         annee_declaration: data["ANNEE DECLARATION"],
         mois_declaration: data["MOIS DECLARATION"],
+        date_declaration: `${data["MOIS DECLARATION"]}/${data["ANNEE DECLARATION"]}`,
         type: data.TYPE,
         sous_type: data.SOUSTYPE,
         code_postal: data.CODE_POSTAL,
