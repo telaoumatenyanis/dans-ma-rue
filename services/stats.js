@@ -1,4 +1,5 @@
 const config = require("config");
+const { flatMap } = require("lodash/fp");
 const indexName = config.get("elasticsearch.index_name");
 
 exports.statsByArrondissement = async (client, callback) => {
@@ -16,12 +17,14 @@ exports.statsByArrondissement = async (client, callback) => {
     }
   });
 
-  const result = res.body.aggregations.arrondissement.buckets.map(bucket => ({
-    arrondissement: bucket.key,
-    count: bucket.doc_count
-  }));
+  const formattedResult = res.body.aggregations.arrondissement.buckets.map(
+    bucket => ({
+      arrondissement: bucket.key,
+      count: bucket.doc_count
+    })
+  );
 
-  callback(result);
+  callback(formattedResult);
 };
 
 exports.statsByType = async (client, callback) => {
@@ -46,7 +49,7 @@ exports.statsByType = async (client, callback) => {
     }
   });
 
-  const result = res.body.aggregations.type.buckets.map(bucket => ({
+  const formattedResult = res.body.aggregations.type.buckets.map(bucket => ({
     type: bucket.key,
     count: bucket.doc_count,
     sous_types: bucket.sous_type.buckets.map(sous_type_bucket => ({
@@ -54,7 +57,7 @@ exports.statsByType = async (client, callback) => {
       count: sous_type_bucket.doc_count
     }))
   }));
-  callback(result);
+  callback(formattedResult);
 };
 
 exports.statsByMonth = async (client, callback) => {
@@ -63,16 +66,29 @@ exports.statsByMonth = async (client, callback) => {
     index: indexName,
     body: {
       aggs: {
-        arrondissement: {
+        annee_declaration: {
           terms: {
-            field: "arrondissement.keyword"
+            field: "annee_declaration.keyword"
+          },
+          aggs: {
+            mois_declaration: {
+              terms: {
+                field: "mois_declaration.keyword"
+              }
+            }
           }
         }
       }
     }
   });
-  console.log(res);
-  callback([]);
+  const formattedResult = flatMap(bucket => {
+    return bucket.mois_declaration.buckets.map(mois_bucket => ({
+      month: `${mois_bucket.key}/${bucket.key}`,
+      count: mois_bucket.doc_count
+    }));
+  }, res.body.aggregations.annee_declaration.buckets);
+
+  callback(formattedResult);
 };
 
 exports.statsPropreteByArrondissement = async (client, callback) => {
