@@ -10,7 +10,8 @@ exports.statsByArrondissement = async (client, callback) => {
       aggs: {
         arrondissement: {
           terms: {
-            field: "arrondissement.keyword"
+            field: "arrondissement.keyword",
+            size: 100
           }
         }
       }
