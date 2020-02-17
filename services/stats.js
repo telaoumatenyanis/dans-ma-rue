@@ -16,15 +16,62 @@ exports.statsByArrondissement = async (client, callback) => {
     }
   });
 
-  callback(res.body.aggregations.arrondissement.buckets);
+  const result = res.body.aggregations.arrondissement.buckets.map(bucket => ({
+    arrondissement: bucket.key,
+    count: bucket.doc_count
+  }));
+
+  callback(result);
 };
 
 exports.statsByType = async (client, callback) => {
-  callback([]);
+  const res = await client.search({
+    size: 0,
+    index: indexName,
+    body: {
+      aggs: {
+        type: {
+          terms: {
+            field: "type.keyword"
+          },
+          aggs: {
+            sous_type: {
+              terms: {
+                field: "sous_type.keyword"
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const result = res.body.aggregations.type.buckets.map(bucket => ({
+    type: bucket.key,
+    count: bucket.doc_count,
+    sous_types: bucket.sous_type.buckets.map(sous_type_bucket => ({
+      sous_type: sous_type_bucket.key,
+      count: sous_type_bucket.doc_count
+    }))
+  }));
+  callback(result);
 };
 
 exports.statsByMonth = async (client, callback) => {
-  // TODO Trouver le top 10 des mois avec le plus d'anomalies
+  const res = await client.search({
+    size: 0,
+    index: indexName,
+    body: {
+      aggs: {
+        arrondissement: {
+          terms: {
+            field: "arrondissement.keyword"
+          }
+        }
+      }
+    }
+  });
+  console.log(res);
   callback([]);
 };
 
