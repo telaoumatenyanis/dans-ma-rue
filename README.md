@@ -75,7 +75,7 @@ doit produire le résultat suivant :
 }
 ```
 
-### Compter le nombre d'anomalies par arondissement
+### Compter le nombre d'anomalies par arrondissement
 
 La requête `curl -X GET http://localhost:3000/stats/_byArrondissement`
 
