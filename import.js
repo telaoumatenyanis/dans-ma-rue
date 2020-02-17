@@ -16,7 +16,16 @@ async function run() {
   // Index creation
   try {
     if (!(await checkIfIndexExists(client, indexName))) {
-      await client.indices.create({ index: indexName });
+      await client.indices.create({
+        index: indexName,
+        body: {
+          mappings: {
+            properties: {
+              location: { type: "geo_point" }
+            }
+          }
+        }
+      });
       console.log("Created index 'anomalies'");
     } else {
       console.log("Index already exists, skipping index creation");
