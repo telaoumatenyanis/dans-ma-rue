@@ -1,22 +1,34 @@
-const config = require('config');
-const indexName = config.get('elasticsearch.index_name');
+const config = require("config");
+const indexName = config.get("elasticsearch.index_name");
 
-exports.statsByArrondissement = (client, callback) => {
-    // TODO Compter le nombre d'anomalies par arondissement
-    callback([]);
-}
+exports.statsByArrondissement = async (client, callback) => {
+  const res = await client.search({
+    size: 0,
+    index: indexName,
+    body: {
+      aggs: {
+        arrondissement: {
+          terms: {
+            field: "arrondissement.keyword"
+          }
+        }
+      }
+    }
+  });
 
-exports.statsByType = (client, callback) => {
-    // TODO Trouver le top 5 des types et sous types d'anomalies
-    callback([]);
-}
+  callback(res.body.aggregations.arrondissement.buckets);
+};
 
-exports.statsByMonth = (client, callback) => {
-    // TODO Trouver le top 10 des mois avec le plus d'anomalies
-    callback([]);
-}
+exports.statsByType = async (client, callback) => {
+  callback([]);
+};
 
-exports.statsPropreteByArrondissement = (client, callback) => {
-    // TODO Trouver le top 3 des arrondissements avec le plus d'anomalies concernant la propreté
-    callback([]);
-}
+exports.statsByMonth = async (client, callback) => {
+  // TODO Trouver le top 10 des mois avec le plus d'anomalies
+  callback([]);
+};
+
+exports.statsPropreteByArrondissement = async (client, callback) => {
+  // TODO Trouver le top 3 des arrondissements avec le plus d'anomalies concernant la propreté
+  callback([]);
+};
