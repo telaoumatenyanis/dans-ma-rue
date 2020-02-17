@@ -22,8 +22,29 @@ exports.count = async (client, from, to, callback) => {
   });
 };
 
-exports.countAround = (client, lat, lon, radius, callback) => {
+exports.countAround = async (client, lat, lon, radius, callback) => {
+  console.log(lat, lon, radius);
+  const res = await client.count({
+    index: indexName,
+    body: {
+      query: {
+        bool: {
+          must: { match_all: {} },
+          filter: {
+            geo_distance: {
+              distance: radius,
+              location: {
+                lat,
+                lon
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
   callback({
-    count: 0
+    count: res.body.count
   });
 };
