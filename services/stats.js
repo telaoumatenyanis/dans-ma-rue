@@ -1,5 +1,4 @@
 const config = require("config");
-const { flatMap, sortBy } = require("lodash/fp");
 const indexName = config.get("elasticsearch.index_name");
 
 exports.statsByArrondissement = async (client, callback) => {

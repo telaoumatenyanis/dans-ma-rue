@@ -2,7 +2,6 @@ const config = require("config");
 const csv = require("csv-parser");
 const fs = require("fs");
 const { Client } = require("@elastic/elasticsearch");
-const moment = require("moment");
 const { chunk } = require("lodash/fp");
 const bluebird = require("bluebird");
 
