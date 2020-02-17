@@ -23,7 +23,6 @@ exports.count = async (client, from, to, callback) => {
 };
 
 exports.countAround = async (client, lat, lon, radius, callback) => {
-  console.log(lat, lon, radius);
   const res = await client.count({
     index: indexName,
     body: {
