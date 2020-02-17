@@ -11,7 +11,8 @@ exports.statsByArrondissement = async (client, callback) => {
         arrondissement: {
           terms: {
             field: "arrondissement.keyword",
-            size: 100
+            order: { _count: "desc" },
+            size: 100 // Because otherwise it only takes 10 values
           }
         }
       }
