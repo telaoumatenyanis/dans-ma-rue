@@ -2,8 +2,6 @@ const config = require("config");
 const csv = require("csv-parser");
 const fs = require("fs");
 const { Client } = require("@elastic/elasticsearch");
-const { chunk } = require("lodash/fp");
-const bluebird = require("bluebird");
 
 const indexName = config.get("elasticsearch.index_name");
 const MAX_CHUNK_SIZE = 10000;
@@ -33,8 +31,8 @@ async function run() {
     console.trace(err.message);
   }
 
-  const anomalies = [];
-  let i = 0;
+  let anomalies = [];
+
   // Read CSV file
   fs.createReadStream("dataset/dans-ma-rue.csv")
     .pipe(
@@ -60,22 +58,15 @@ async function run() {
         conseil_de_quartier: data["CONSEIL DE QUARTIER"],
         location: data.geo_point_2d
       });
+
+      if (anomalies.length > MAX_CHUNK_SIZE) {
+        client.bulk(createBulkInsertQuery(anomalies));
+        anomalies = [];
+      }
     })
     .on("end", async () => {
       try {
-        /**
-         * It is needed to chunk the data in order to not exceed the elasticsearch query limit.
-         * In order to limit load on ES, maximum concurrent running bulk are 10.
-         * Another way could be to useInterval in order to execute promises on a regular basis.
-         */
-        console.log("Inserting " + anomalies.length + " anomalies");
-        await bluebird.map(
-          chunk(MAX_CHUNK_SIZE, anomalies),
-          anomalyChunk => {
-            return client.bulk(createBulkInsertQuery(anomalyChunk));
-          },
-          { concurrency: 10 }
-        );
+        client.bulk(createBulkInsertQuery(anomalies));
       } catch (err) {
         console.trace(err);
       } finally {
