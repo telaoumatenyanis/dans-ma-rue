@@ -1,3 +1,4 @@
+
 const config = require("config");
 const indexName = config.get("elasticsearch.index_name");
 
@@ -10,7 +11,7 @@ exports.count = async (client, from, to, callback) => {
           "@timestamp": {
             format: "yyyy-MM-dd",
             gte: from,
-            lte: to
+            lt: to
           }
         }
       }
